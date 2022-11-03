@@ -3,6 +3,7 @@ package bubblegum_api
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -29,6 +30,7 @@ func getAllCards(c *fiber.Ctx) error {
 	skip := 0
 	limit := 9
 	var err error
+	results := []Card{}
 	if c.Query("skip") != "" {
 		skip, err = strconv.Atoi(c.Query("skip"))
 		if err != nil {
@@ -42,9 +44,37 @@ func getAllCards(c *fiber.Ctx) error {
 		}
 	}
 
+	if c.Query("search") != "" {
+		text := c.Query("search")
+		for _, card := range cards {
+			if strings.Contains(strings.ToLower(card.Player), strings.ToLower(text)) ||
+				strings.Contains(strings.ToLower(card.Description), strings.ToLower(text)) {
+				results = append(results, card)
+			}
+		}
+	}
+
 	if skip > len(cards) || limit > len(cards) {
 		return fiber.NewError(fiber.StatusNotFound, "Not Found - Query parameters exceed inventory")
-	} else if skip < len(cards) && skip+limit > len(cards) {
+	}
+
+	// if searching, return this
+	if len(results) > 0 {
+		if skip < len(results) && skip+limit > len(results) {
+			if len(results) > 0 {
+				return c.JSON(results[skip:])
+			}
+			return c.JSON(results[skip:])
+		}
+
+		return c.JSON(results[skip : skip+limit])
+	}
+
+	// if NOT searching, default return
+	if skip < len(cards) && skip+limit > len(cards) {
+		if len(results) > 0 {
+			return c.JSON(results[skip:])
+		}
 		return c.JSON(cards[skip:])
 	}
 
