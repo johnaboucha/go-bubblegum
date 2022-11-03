@@ -8,16 +8,16 @@ import (
 )
 
 type Card struct {
-	CardID       int
-	Year         string
-	Manufacturer string
-	Player       string
-	Series       string
-	Card_number  string
-	Description  string
-	Category     string
-	Parallel     string
-	Image        string
+	CardID       int    `json:"id"`
+	Year         string `json:"year"`
+	Manufacturer string `json:"manufacturer"`
+	Player       string `json:"player"`
+	Series       string `json:"series"`
+	Card_number  string `json:"card_number"`
+	Description  string `json:"description"`
+	Category     string `json:"category"`
+	Parallel     string `json:"parallel"`
+	Image        string `json:"image"`
 }
 
 var cards = []Card{}

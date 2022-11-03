@@ -1,6 +1,11 @@
 package bubblegum_api
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 func apiHome(c *fiber.Ctx) error {
 	return c.SendString("API Documentation")
@@ -21,11 +26,40 @@ func getCategories(c *fiber.Ctx) error {
 }
 
 func getAllCards(c *fiber.Ctx) error {
-	return c.JSON(cards[:9])
+	skip := 0
+	limit := 9
+	var err error
+	if c.Query("skip") != "" {
+		skip, err = strconv.Atoi(c.Query("skip"))
+		if err != nil {
+			return fmt.Errorf("could not convert id parameter to int: %v", err)
+		}
+	}
+	if c.Query("limit") != "" {
+		limit, err = strconv.Atoi(c.Query("limit"))
+		if err != nil {
+			return fmt.Errorf("could not convert limit parameter to int: %v", err)
+		}
+	}
+
+	if skip > len(cards) || limit > len(cards) {
+		return fiber.NewError(fiber.StatusNotFound, "Not Found - Query parameters exceed inventory")
+	} else if skip < len(cards) && skip+limit > len(cards) {
+		return c.JSON(cards[skip:])
+	}
+
+	return c.JSON(cards[skip : skip+limit])
 }
 
 func getCard(c *fiber.Ctx) error {
-	return c.SendString("single card")
+	index, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return fmt.Errorf("could not convert id parameter to int: %v", err)
+	}
+	if index > len(cards) {
+		return fiber.NewError(fiber.StatusNotFound, "Card not found")
+	}
+	return c.JSON(cards[index-1])
 }
 
 func getAllManufacturers(c *fiber.Ctx) error {
