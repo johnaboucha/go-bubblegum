@@ -12,10 +12,18 @@ func apiHome(c *fiber.Ctx) error {
 	return c.SendString("API Documentation")
 }
 
+// GET the API resources
 func getResources(c *fiber.Ctx) error {
-	return c.SendString("resources")
+	resources := make(map[string]string)
+	resources["cards"] = "/api/v1/cards/"
+	resources["manufacturers"] = "/api/v1/manufacturers/"
+	resources["players"] = "/api/v1/players/"
+	resources["teams"] = "/api/v1/teams/"
+	resources["categories"] = "/api/v1/categories"
+	return c.JSON(resources)
 }
 
+// GET all the baseball card categories
 func getCategories(c *fiber.Ctx) error {
 	keys := []string{}
 	for k := range categories {
@@ -26,9 +34,11 @@ func getCategories(c *fiber.Ctx) error {
 	return c.JSON(keyMap)
 }
 
+// GET all the baseball cards
 func getAllCards(c *fiber.Ctx) error {
 	skip := 0
 	limit := 9
+
 	var err error
 	results := []Card{}
 	if c.Query("skip") != "" {
@@ -44,7 +54,9 @@ func getAllCards(c *fiber.Ctx) error {
 		}
 	}
 
-	if c.Query("search") != "" {
+	// return logic
+	if c.Query("search") != "" && c.Query("category") == "" {
+		// search cards
 		text := c.Query("search")
 		for _, card := range cards {
 			if strings.Contains(strings.ToLower(card.Player), strings.ToLower(text)) ||
@@ -52,35 +64,61 @@ func getAllCards(c *fiber.Ctx) error {
 				results = append(results, card)
 			}
 		}
-	}
-
-	if skip > len(cards) || limit > len(cards) {
-		return fiber.NewError(fiber.StatusNotFound, "Not Found - Query parameters exceed inventory")
-	}
-
-	// if searching, return this
-	if len(results) > 0 {
-		if skip < len(results) && skip+limit > len(results) {
-			if len(results) > 0 {
-				return c.JSON(results[skip:])
+		if skip >= len(results) {
+			return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		} else if skip < len(results) && skip+limit > len(results) {
+			return c.JSON(results[skip:])
+		} else {
+			return c.JSON(results[skip : skip+limit])
+		}
+	} else if c.Query("search") != "" && c.Query("category") != "" {
+		// search cards
+		// filter by category
+		text := c.Query("search")
+		category := c.Query("category")
+		for _, card := range cards {
+			if strings.Contains(strings.ToLower(card.Player), strings.ToLower(text)) ||
+				strings.Contains(strings.ToLower(card.Description), strings.ToLower(text)) {
+				if card.Category == category {
+					results = append(results, card)
+				}
 			}
-			return c.JSON(results[skip:])
 		}
-
-		return c.JSON(results[skip : skip+limit])
-	}
-
-	// if NOT searching, default return
-	if skip < len(cards) && skip+limit > len(cards) {
-		if len(results) > 0 {
+		if skip >= len(results) {
+			return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		} else if skip < len(results) && skip+limit > len(results) {
 			return c.JSON(results[skip:])
+		} else {
+			return c.JSON(results[skip : skip+limit])
 		}
-		return c.JSON(cards[skip:])
+	} else if c.Query("category") != "" {
+		// filter cards for category
+		category := c.Query("category")
+		for _, card := range cards {
+			if card.Category == category {
+				results = append(results, card)
+			}
+		}
+		if skip >= len(results) {
+			return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		} else if skip < len(results) && skip+limit > len(results) {
+			return c.JSON(results[skip:])
+		} else {
+			return c.JSON(results[skip : skip+limit])
+		}
+	} else {
+		// default return
+		if skip >= len(cards) {
+			return fiber.NewError(fiber.StatusNotFound, "Not Found")
+		} else if skip < len(cards) && skip+limit > len(cards) {
+			return c.JSON(cards[skip:])
+		} else {
+			return c.JSON(cards[skip : skip+limit])
+		}
 	}
-
-	return c.JSON(cards[skip : skip+limit])
 }
 
+// GET a single baseball card
 func getCard(c *fiber.Ctx) error {
 	index, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
@@ -101,7 +139,30 @@ func getManufacturer(c *fiber.Ctx) error {
 }
 
 func getAllPlayers(c *fiber.Ctx) error {
-	return c.SendString("all players")
+	skip := 0
+	limit := 9
+	var err error
+
+	if c.Query("skip") != "" {
+		skip, err = strconv.Atoi(c.Query("skip"))
+		if err != nil {
+			return fmt.Errorf("could not convert id parameter to int: %v", err)
+		}
+	}
+	if c.Query("limit") != "" {
+		limit, err = strconv.Atoi(c.Query("limit"))
+		if err != nil {
+			return fmt.Errorf("could not convert limit parameter to int: %v", err)
+		}
+	}
+
+	if skip < len(players) && skip+limit > len(players) {
+		return c.JSON(players[skip:])
+	} else if skip > len(players) {
+		return fiber.NewError(fiber.StatusNotFound, "Cards not found")
+	} else {
+		return c.JSON(players[skip : skip+limit])
+	}
 }
 
 func getPlayer(c *fiber.Ctx) error {

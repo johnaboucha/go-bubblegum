@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// get data
-	bubblegum_api.GetGoogleSheet()
+	bubblegum_api.LoadData()
 
 	// create server
 	app := fiber.New()

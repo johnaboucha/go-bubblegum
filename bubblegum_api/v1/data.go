@@ -20,10 +20,85 @@ type Card struct {
 	Image        string `json:"image"`
 }
 
+type Manufacturer struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	YearFounded  string `json:"year_founded"`
+	YearDefunct  string `json:"year_defuct"`
+	Fate         string `json:"fate"`
+	Headquarters string `json:"headquarters"`
+	Website      string `json:"website"`
+	Revenue      string `json:"revenue"`
+	Employees    int    `json:"employees"`
+	Address      string `json:"address"`
+}
+
+type Player struct {
+	ID        int    `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Position  string `json:"position"`
+	BirthDate string `json:"birth_date"`
+	DeathDate string `json:"death_date"`
+	Throws    string `json:"throws"`
+	Bats      string `json:"bats"`
+	Height    string `json:"height"`
+	Weight    string `json:"weight"`
+}
+
+type Team struct {
+	ID              int    `json:"id"`
+	Location        string `json:"location"`
+	Team            string `json:"team"`
+	League          string `json:"league"`
+	LeagueLevel     string `json:"league_level"`
+	YearEstablished int    `json:"year_established"`
+	YearDefunct     int    `json:"year_defunct"`
+}
+
 var cards = []Card{}
+var manufacturers = []Manufacturer{}
+var players = []Player{}
+var teams = []Team{}
 var categories = make(map[string]bool)
 
-func GetGoogleSheet() {
+func LoadData() {
+	pullCards()
+	pullPlayers()
+}
+
+func pullPlayers() {
+	SHEET_ID := "1g1E_k1V1VuHXCwT0sZUEMjg-4pUmUzaOkSkCOO5PkFc"
+	SHEET_NAME := "players"
+	url := "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv&sheet=" + SHEET_NAME
+
+	data, err := readCSVFromURL(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for index, row := range data {
+		// skip header
+		if index == 0 {
+			continue
+		}
+		player := Player{
+			ID:        index,
+			FirstName: row[0],
+			LastName:  row[1],
+			Position:  row[2],
+			BirthDate: row[3],
+			DeathDate: row[4],
+			Throws:    row[5],
+			Bats:      row[6],
+			Height:    row[7],
+			Weight:    row[8],
+		}
+		players = append(players, player)
+	}
+}
+
+func pullCards() {
 
 	SHEET_ID := "1g1E_k1V1VuHXCwT0sZUEMjg-4pUmUzaOkSkCOO5PkFc"
 	SHEET_NAME := "cards"
