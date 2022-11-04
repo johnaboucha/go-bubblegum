@@ -2,7 +2,7 @@ package bubblegum_api
 
 import "github.com/gofiber/fiber/v2"
 
-func RegisterRoutes(app *fiber.App) {
+func RegisterRoutesV1(app *fiber.App) {
 	app.Get("/api/v1/", apiHome)
 	app.Get("/api/v1/resources/", getResources)
 	app.Get("/api/v1/categories/", getCategories)

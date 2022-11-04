@@ -29,7 +29,7 @@ type Manufacturer struct {
 	Headquarters string `json:"headquarters"`
 	Website      string `json:"website"`
 	Revenue      string `json:"revenue"`
-	Employees    int    `json:"employees"`
+	Employees    string `json:"employees"`
 	Address      string `json:"address"`
 }
 
@@ -52,8 +52,8 @@ type Team struct {
 	Team            string `json:"team"`
 	League          string `json:"league"`
 	LeagueLevel     string `json:"league_level"`
-	YearEstablished int    `json:"year_established"`
-	YearDefunct     int    `json:"year_defunct"`
+	YearEstablished string `json:"year_established"`
+	YearDefunct     string `json:"year_defunct"`
 }
 
 var cards = []Card{}
@@ -64,7 +64,68 @@ var categories = make(map[string]bool)
 
 func LoadData() {
 	pullCards()
+	pullManufacturers()
 	pullPlayers()
+	pullTeams()
+}
+
+func pullManufacturers() {
+	SHEET_ID := "1g1E_k1V1VuHXCwT0sZUEMjg-4pUmUzaOkSkCOO5PkFc"
+	SHEET_NAME := "manufacturers"
+	url := "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv&sheet=" + SHEET_NAME
+
+	data, err := readCSVFromURL(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for index, row := range data {
+		// skip header
+		if index == 0 {
+			continue
+		}
+		manufacturer := Manufacturer{
+			ID:           index,
+			Name:         row[0],
+			YearFounded:  row[1],
+			YearDefunct:  row[2],
+			Fate:         row[3],
+			Headquarters: row[4],
+			Website:      row[5],
+			Revenue:      row[6],
+			Employees:    row[7],
+			Address:      row[8],
+		}
+		manufacturers = append(manufacturers, manufacturer)
+	}
+}
+
+func pullTeams() {
+	SHEET_ID := "1g1E_k1V1VuHXCwT0sZUEMjg-4pUmUzaOkSkCOO5PkFc"
+	SHEET_NAME := "teams"
+	url := "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv&sheet=" + SHEET_NAME
+
+	data, err := readCSVFromURL(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for index, row := range data {
+		// skip header
+		if index == 0 {
+			continue
+		}
+		team := Team{
+			ID:              index,
+			Location:        row[0],
+			Team:            row[1],
+			League:          row[2],
+			LeagueLevel:     row[3],
+			YearEstablished: row[4],
+			YearDefunct:     row[5],
+		}
+		teams = append(teams, team)
+	}
 }
 
 func pullPlayers() {

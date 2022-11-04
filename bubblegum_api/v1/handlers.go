@@ -130,14 +130,47 @@ func getCard(c *fiber.Ctx) error {
 	return c.JSON(cards[index-1])
 }
 
+// GET all card manufacturers
 func getAllManufacturers(c *fiber.Ctx) error {
-	return c.SendString("all manufacturers")
+	skip := 0
+	limit := 9
+	var err error
+
+	if c.Query("skip") != "" {
+		skip, err = strconv.Atoi(c.Query("skip"))
+		if err != nil {
+			return fmt.Errorf("could not convert id parameter to int: %v", err)
+		}
+	}
+	if c.Query("limit") != "" {
+		limit, err = strconv.Atoi(c.Query("limit"))
+		if err != nil {
+			return fmt.Errorf("could not convert limit parameter to int: %v", err)
+		}
+	}
+
+	if skip < len(manufacturers) && skip+limit > len(manufacturers) {
+		return c.JSON(manufacturers[skip:])
+	} else if skip >= len(manufacturers) {
+		return fiber.NewError(fiber.StatusNotFound, "Manufacturer not found")
+	} else {
+		return c.JSON(manufacturers[skip : skip+limit])
+	}
 }
 
+// GET a single card manufacturer
 func getManufacturer(c *fiber.Ctx) error {
-	return c.SendString("single manufacturer")
+	index, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return fmt.Errorf("could not convert id parameter to int: %v", err)
+	}
+	if index > len(manufacturers) {
+		return fiber.NewError(fiber.StatusNotFound, "Manufacturer not found")
+	}
+	return c.JSON(manufacturers[index-1])
 }
 
+// GET all players
 func getAllPlayers(c *fiber.Ctx) error {
 	skip := 0
 	limit := 9
@@ -158,21 +191,61 @@ func getAllPlayers(c *fiber.Ctx) error {
 
 	if skip < len(players) && skip+limit > len(players) {
 		return c.JSON(players[skip:])
-	} else if skip > len(players) {
+	} else if skip >= len(players) {
 		return fiber.NewError(fiber.StatusNotFound, "Cards not found")
 	} else {
 		return c.JSON(players[skip : skip+limit])
 	}
 }
 
+// GET single player
 func getPlayer(c *fiber.Ctx) error {
-	return c.SendString("single player")
+	index, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return fmt.Errorf("could not convert id parameter to int: %v", err)
+	}
+	if index > len(players) {
+		return fiber.NewError(fiber.StatusNotFound, "Player not found")
+	}
+	return c.JSON(players[index-1])
 }
 
+// GET all teams
 func getAllTeams(c *fiber.Ctx) error {
-	return c.SendString("all teams")
+	skip := 0
+	limit := 9
+	var err error
+
+	if c.Query("skip") != "" {
+		skip, err = strconv.Atoi(c.Query("skip"))
+		if err != nil {
+			return fmt.Errorf("could not convert id parameter to int: %v", err)
+		}
+	}
+	if c.Query("limit") != "" {
+		limit, err = strconv.Atoi(c.Query("limit"))
+		if err != nil {
+			return fmt.Errorf("could not convert limit parameter to int: %v", err)
+		}
+	}
+
+	if skip < len(teams) && skip+limit > len(teams) {
+		return c.JSON(teams[skip:])
+	} else if skip >= len(teams) {
+		return fiber.NewError(fiber.StatusNotFound, "Teams not found")
+	} else {
+		return c.JSON(teams[skip : skip+limit])
+	}
 }
 
+// GET a single team by ID
 func getTeam(c *fiber.Ctx) error {
-	return c.SendString("single team")
+	index, err := strconv.Atoi(c.Params("id"))
+	if err != nil {
+		return fmt.Errorf("could not convert id parameter to int: %v", err)
+	}
+	if index > len(teams) {
+		return fiber.NewError(fiber.StatusNotFound, "Team not found")
+	}
+	return c.JSON(teams[index-1])
 }

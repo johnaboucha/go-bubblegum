@@ -1,19 +1,14 @@
 package main
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 func home(c *fiber.Ctx) error {
-	return c.SendString("Hello, World!")
-}
+	cats := pullCategories(c.BaseURL())
 
-func getPage(c *fiber.Ctx) error {
-	return c.SendString("page")
-}
-
-func getPost(c *fiber.Ctx) error {
-	return c.SendString("post")
-}
-
-func getAllPosts(c *fiber.Ctx) error {
-	return c.SendString("all post")
+	return c.Render("home", fiber.Map{
+		"Title": "Hello, World!",
+		"Cats":  cats,
+	})
 }
